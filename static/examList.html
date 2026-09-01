@@ -168,13 +168,12 @@ gelöscht (Eintrag gelöscht)"></i>
             <i class="bi bi-question-circle-fill text-info" title="Datum der verpassten Prüfung"></i>
           </label>
           <input type="date" required class="form-control" id="missed"/>
-          <label for="duration" class="form-label">
-            Dauer (Minuten)
-            <i class="bi bi-question-circle-fill text-info" role="img"
-               aria-label="Prüfungszeit inklusive allfälliger Nachteilsausgleichsmassnahmen. Ein bewilligter Zeitzuschlag ist hier schon eingerechnet anzugeben"
-               title="Prüfungszeit inklusive allfälliger Nachteilsausgleichsmassnahmen&#10;Ein bewilligter Zeitzuschlag ist hier schon eingerechnet anzugeben"></i>
-          </label>
-          <input type="number" required class="form-control" id="duration"/>
+          <label for="duration" class="form-label">Dauer (Minuten)</label>
+          <input type="number" required class="form-control" id="duration"
+                 aria-describedby="durationHelp"/>
+          <div id="durationHelp" class="form-text">
+            Inklusive bewilligter Nachteilsausgleichsmassnahmen, z.B. Zeitzuschlag.
+          </div>
           <label for="tools" class="form-label">Hilfsmittel</label>
           <textarea class="form-control" id="tools" cols="30" rows="4" wrap="hard" maxlength="120">&nbsp;</textarea>
         </fieldset>
