@@ -1,5 +1,22 @@
-.idea/
+# local configuration and secrets
 .env
-/venv/
+.env.*
+!.env.example
 /static/js/config.js
 /static/js/news.js
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+/venv/
+/.venv/
+
+# generated output and logs
+/output/
+*.log
+
+# editors and os
+.idea/
+.vscode/
+.DS_Store

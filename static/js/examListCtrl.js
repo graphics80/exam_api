@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.getElementById("examadd").addEventListener("click", addExam);
     }
+    addDetailsAllToggle("showDetails", "examlist");
 
     searchExamlist();
 });
@@ -217,10 +218,14 @@ function showExamlist(data) {
                         cell.appendChild(button);
                     }
 
+                    const detailRow = addDetailRow(rows, exam, 7);
+                    addDetailToggle(cell, detailRow);
+
                 } catch (error) {
                     console.log("Error in exam with uuid: " + exam.exam_uuid);
                 }
             });
+            setDetailsAllButton("showDetails", false);
             showMessage("clear", "");
         } else {
             showMessage("warning", "Keine Prüfungen zu diesen Suchkriterien gefunden");

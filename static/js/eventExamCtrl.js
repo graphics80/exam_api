@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("createPDF").addEventListener("click", createAllPDF);
         document.getElementById("student").addEventListener("click", changeSort);
         document.getElementById("status").addEventListener("click", changeSort);
+        addDetailsAllToggle("showDetails", "examlist");
     }
 });
 
@@ -205,11 +206,17 @@ function showExamlist(data, locked) {
                         cell.innerHTML = exam.module + " / " + exam.exam_num.substring(0, 15);
                         cell = row.insertCell(-1);
                         cell.innerHTML = exam.duration;
+
+                        cell = row.insertCell(-1);
+                        cell.classList.add("text-end");
+                        const detailRow = addDetailRow(rows, exam, 9);
+                        addDetailToggle(cell, detailRow);
                     } catch (error) {
                         console.log("Error in exam with uuid: " + exam.exam_uuid);
                     }
                 }
             });
+            setDetailsAllButton("showDetails", false);
             document.getElementById("distinct").innerText = Object.keys(distinctStudent).length
             lockForm("filterForm", locked);
             showMessage("clear", "");

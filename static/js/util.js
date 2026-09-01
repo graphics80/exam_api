@@ -253,6 +253,145 @@ function create_UUID() {
     return uuid;
 }
 
+/* the additional fields shown when a row of an examlist is expanded */
+const DETAIL_FIELDS = [
+    {"label": "Verpasste Prüfung", "value": exam => formatDate(exam.missed)},
+    {"label": "Raum", "value": exam => exam.room},
+    {"label": "Hilfsmittel", "value": exam => exam.tools},
+    {"label": "Anmerkungen", "value": exam => exam.remarks}
+];
+
+/**
+ * formats a date of the API (yyyy-mm-dd) for display
+ * @param value  the date as delivered by the API
+ * @returns {string} the date as dd.mm.yyyy
+ */
+function formatDate(value) {
+    if (value === null || value === undefined || value === "") return "";
+    const parts = value.toString().substring(0, 10).split("-");
+    if (parts.length !== 3) return value.toString();
+    return parts[2] + "." + parts[1] + "." + parts[0];
+}
+
+/**
+ * turns a stored text into a readable one.
+ * Line breaks are stored as the marker CRLF, see ExamDAO.save_exams()
+ * @param value  the stored text
+ * @returns {string} the text with real line breaks
+ */
+function plainText(value) {
+    if (value === null || value === undefined) return "";
+    return value.toString().replaceAll("CRLF", "\n");
+}
+
+/**
+ * adds the hidden row that holds the additional information about an exam
+ * @param rows  the tbody of the examlist
+ * @param exam  the exam to describe
+ * @param colspan  the number of columns of the examlist
+ * @returns {HTMLTableRowElement} the new row
+ */
+function addDetailRow(rows, exam, colspan) {
+    const row = rows.insertRow(-1);
+    row.classList.add("exam-details", "d-none");
+    const cell = row.insertCell(-1);
+    cell.colSpan = colspan;
+
+    const list = document.createElement("dl");
+    list.classList.add("row", "mb-0");
+    DETAIL_FIELDS.forEach(field => {
+        const text = plainText(field.value(exam)).trim();
+        const label = document.createElement("dt");
+        label.classList.add("col-sm-2");
+        label.textContent = field.label;
+        const value = document.createElement("dd");
+        value.classList.add("col-sm-10", "mb-1", "exam-details-text");
+        value.textContent = text === "" ? "—" : text;
+        list.appendChild(label);
+        list.appendChild(value);
+    });
+    cell.appendChild(list);
+    return row;
+}
+
+/**
+ * adds the button that shows or hides the details of a single exam
+ * @param cell  the cell to add the button to
+ * @param detailRow  the row with the details
+ * @returns {HTMLButtonElement} the new button
+ */
+function addDetailToggle(cell, detailRow) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn btn-sm btn-outline-primary ms-1 exam-details-toggle";
+    button.setAttribute("aria-expanded", "false");
+    setDetails(detailRow, button, false);
+    button.addEventListener("click", () => {
+        setDetails(detailRow, button, detailRow.classList.contains("d-none"));
+    });
+    cell.appendChild(button);
+    return button;
+}
+
+/**
+ * shows or hides the details of one exam
+ * @param detailRow  the row with the details
+ * @param button  the button that toggles the row
+ * @param show  true=show the details
+ */
+function setDetails(detailRow, button, show) {
+    detailRow.classList.toggle("d-none", !show);
+    button.setAttribute("aria-expanded", show ? "true" : "false");
+    button.title = show ? "Weitere Angaben ausblenden" : "Weitere Angaben anzeigen";
+    button.innerHTML = show
+        ? "<i class='bi bi-chevron-up'></i>"
+        : "<i class='bi bi-chevron-down'></i>";
+}
+
+/**
+ * shows or hides the details of every exam in a list
+ * @param tableId  the id of the examlist
+ * @param show  true=show all details
+ */
+function setAllDetails(tableId, show) {
+    const table = document.getElementById(tableId);
+    table.querySelectorAll("tr.exam-details").forEach(detailRow => {
+        const button = detailRow.previousElementSibling.querySelector(".exam-details-toggle");
+        if (button !== null) setDetails(detailRow, button, show);
+    });
+}
+
+/**
+ * connects the button that shows or hides the details of all exams at once
+ * @param buttonId  the id of the button
+ * @param tableId  the id of the examlist
+ */
+function addDetailsAllToggle(buttonId, tableId) {
+    const button = document.getElementById(buttonId);
+    if (button === null) return;
+    if (button.getAttribute("data-shown") !== null) return;   // already connected
+    button.addEventListener("click", () => {
+        const show = button.getAttribute("data-shown") !== "true";
+        setAllDetails(tableId, show);
+        setDetailsAllButton(buttonId, show);
+    });
+    setDetailsAllButton(buttonId, false);
+}
+
+/**
+ * updates the label of the button that shows or hides all details
+ * @param buttonId  the id of the button
+ * @param show  true=details are shown
+ */
+function setDetailsAllButton(buttonId, show) {
+    const button = document.getElementById(buttonId);
+    if (button === null) return;
+    button.setAttribute("data-shown", show ? "true" : "false");
+    button.innerHTML = show
+        ? "<i class='bi bi-chevron-up'></i> Weniger anzeigen"
+        : "<i class='bi bi-chevron-down'></i> Mehr anzeigen";
+}
+
 function addTextCell(row, text) {
     /**
      * adds a cell to a table row

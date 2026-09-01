@@ -78,3 +78,12 @@ fieldset {
     color: white;
     background-color: var(--bs-green);
 }
+
+.exam-details > td {
+    background-color: var(--bs-light);
+    border-top: none;
+}
+
+.exam-details-text {
+    white-space: pre-line;
+}
