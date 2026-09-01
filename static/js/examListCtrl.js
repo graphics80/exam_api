@@ -352,9 +352,16 @@ function submitExam(event) {
             data.set(field, document.getElementById(field).value);
         }
 
+        // Datenblatt nur fuer eine neue Pruefung ab dem Status "offen",
+        // solange das Arztzeugnis pendent ist oder der Eintrag geloescht wurde nicht
+        const showSheet = data.get("exam_uuid").trim() === "" &&
+            ["20", "30", "35", "40"].includes(data.get("status"));
         saveExam(
             data
         ).then(function () {
+            if (showSheet) {
+                openSheet(data.get("exam_uuid"));
+            }
             if (document.getElementById("sendexam").checked) {
                 const uuid = document.getElementById('exam_uuid').value;
                 const status = document.getElementById('status').value;
@@ -408,11 +415,25 @@ function sendEmail(event) {
  * @param event
  */
 function createPDF(event) {
-    const uuid = getExamUUID(event)
+    openSheet(getExamUUID(event));
+}
+
+/**
+ * opens the datasheet of an exam in a new tab
+ * @param uuid the uuid of the exam
+ */
+function openSheet(uuid) {
     sendRequest(API_URL + "/print/" + uuid, "GET", null, "blob")
         .then((blob) => {
             const _url = window.URL.createObjectURL(blob);
-            window.open(_url, "_blank").focus();
+            const sheet = window.open(_url, "_blank");
+            if (sheet !== null) {
+                sheet.focus();
+            } else {
+                showMessage("warning", "Das Datenblatt wurde vom Popup-Blocker unterdrückt");
+            }
+            // erst freigeben, wenn der neue Tab den Blob geladen hat
+            window.setTimeout(() => window.URL.revokeObjectURL(_url), 60000);
         }).catch((err) => {
         console.log(err);
     });
