@@ -318,8 +318,9 @@ function sendAllEmail(service, examUUIDs = null) {
             if (response.ok) {
                 showMessage("info", message, 0, 5);
             } else {
-                console.log(response);
-                showMessage("danger", "Die Emails konnten nicht gesendet werden");
+                console.log(response.status, message);
+                showMessage("danger", "Die Emails konnten nicht gesendet werden: "
+                    + errorDetail(response.status, message));
             }
         })).catch(function (error) {
             console.log(error);
@@ -404,6 +405,24 @@ function createAllPDF() {
         console.log(error);
         showMessage("danger", "Die Datenblätter konnten nicht erstellt werden");
     });
+}
+
+/**
+ * describes a failed request for the user
+ * only the message field of the api is used, an arbitrary body could carry
+ * markup and showMessage() writes it as innerHTML
+ * @param status  the http status
+ * @param body  the response body
+ * @returns {string} the message of the api with the status, or just the status
+ */
+function errorDetail(status, body) {
+    let detail = "";
+    try {
+        detail = JSON.parse(body).message ?? "";
+    } catch (error) {
+        /* not json, so there is no structured message to show */
+    }
+    return detail === "" ? `HTTP ${status}` : `${detail} (HTTP ${status})`;
 }
 
 /**

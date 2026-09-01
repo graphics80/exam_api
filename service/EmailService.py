@@ -1,7 +1,7 @@
 import datetime
 from contextlib import nullcontext
 
-from flask import make_response, current_app
+from flask import make_response, current_app, jsonify
 from flask_mail import Mail, Message
 from flask_restful import Resource, reqparse
 
@@ -66,10 +66,14 @@ class EmailService(Resource):
         args = self.parser.parse_args()
         exam_dao = ExamDAO()
 
+        exam_uuids = [exam_uuid for exam_uuid in (''.join(arg) for arg in args['exam_uuid'] or []) if exam_uuid]
+        if not exam_uuids:
+            return make_response(jsonify({"message": "no exam selected"}), 400)
+
         count = 0
         with mail_connection() as connection:
-            for exam_uuid in args['exam_uuid'] or []:
-                exam = exam_dao.read_exam(''.join(exam_uuid))
+            for exam_uuid in exam_uuids:
+                exam = exam_dao.read_exam(exam_uuid)
                 if exam is None:
                     continue
                 if type == 'reminder' and exam.status not in MISSING_DOCUMENTS:
