@@ -164,6 +164,7 @@ function showExamlist(data, locked) {
                         field.name = "selected";
                         field.classList.add("form-check-input");
                         field.setAttribute("data-examUUID", exam.exam_uuid);
+                        field.addEventListener("change", showPDFButton);
                         cell.appendChild(field);
 
                         /* cell = row.insertCell(-1);
@@ -220,6 +221,7 @@ function showExamlist(data, locked) {
                 }
             });
             setDetailsAllButton("showDetails", false);
+            showPDFButton();
             document.getElementById("distinct").innerText = Object.keys(distinctStudent).length
             lockForm("filterForm", locked);
             showMessage("clear", "");
@@ -362,36 +364,55 @@ function sendReminder() {
  * creates a PDF for all selected exams
  */
 function createAllPDF() {
+    const examUUIDs = selectedExams();
+    if (examUUIDs.length === 0) {
+        showMessage("warning", "keine Prüfung ausgewählt");
+        return;
+    }
+
     showMessage("info", "PDF wird erstellt ...", 2);
     let data = new URLSearchParams();
-    const boxes = document.querySelectorAll("input:checked");
-    if (boxes.length > 0) {
-        for (const box of boxes) {
-            let examUUID = box.getAttribute("data-examuuid");
-            if (examUUID != null)
-                data.append("exam_uuid", examUUID);
-        }
-        fetch(API_URL + "/print", {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-                "Authorization": "Bearer " + readStorage("access")
-            }, body: data
-        }).then(function (response) {
-            if (!response.ok) {
-                console.log(response);
-            } else return response;
-        }).then(response => response.text()
-        ).then(pdf_name => {
-            let url = "./output/" + pdf_name;
-            window.open(url, "_blank");
-            showMessage("clear", "")
-        }).catch(function (error) {
-            console.log(error);
-        });
-    } else {
-        showMessage("warning", "keine Prüfung ausgewählt");
+    for (const examUUID of examUUIDs) {
+        data.append("exam_uuid", examUUID);
     }
+    fetch(API_URL + "/print", {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": "Bearer " + readStorage("access")
+        }, body: data
+    }).then(response => response.text().then(pdf_name => {
+        if (response.ok) {
+            window.open("./output/" + pdf_name, "_blank");
+            showMessage("clear", "");
+        } else {
+            console.log(response);
+            showMessage("danger", "Die Datenblätter konnten nicht erstellt werden");
+        }
+    })).catch(function (error) {
+        console.log(error);
+        showMessage("danger", "Die Datenblätter konnten nicht erstellt werden");
+    });
+}
+
+/**
+ * the exams whose checkbox is ticked
+ * the status switch of the event is a checkbox too, so only the boxes
+ * that carry an exam count as a selection
+ * @returns {string[]} the uuids of the selected exams
+ */
+function selectedExams() {
+    return [...document.querySelectorAll("input:checked")]
+        .filter(box => box.hasAttribute("data-examuuid"))
+        .map(box => box.getAttribute("data-examuuid"));
+}
+
+/**
+ * the datasheets need a selection, so the button stays disabled until
+ * at least one exam is ticked
+ */
+function showPDFButton() {
+    document.getElementById("createPDF").disabled = selectedExams().length === 0;
 }
 
 /**
@@ -403,4 +424,5 @@ function selectAll() {
     for (const box of checkboxes) {
         box.checked = isChecked;
     }
+    showPDFButton();
 }
