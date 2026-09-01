@@ -51,7 +51,7 @@ class EmailService(Resource):
         if not create_email(exam, status):
             # bewusst kein 404: httpFetch() im Frontend loest 404 als Erfolg
             # mit einem leeren Ergebnis auf, der Fehlschlag ginge verloren
-            return make_response('{"message": "event has no supervisor"}', 422)
+            return make_response('{"message": "event unknown or without supervisor"}', 422)
         return make_response('{"message": "email sent"}', 200)
 
     @token_required
