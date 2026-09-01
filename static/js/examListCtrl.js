@@ -437,6 +437,12 @@ function createPDF(event) {
 function openSheet(uuid) {
     sendRequest(API_URL + "/print/" + uuid, "GET", null, "blob")
         .then((blob) => {
+            // httpFetch() loest bei 404 mit der Zeichenkette "[]" auf, unabhaengig
+            // vom angeforderten Typ, createObjectURL() wuerde daran scheitern
+            if (!(blob instanceof Blob)) {
+                showMessage("danger", "Das Datenblatt konnte nicht erstellt werden");
+                return;
+            }
             const _url = window.URL.createObjectURL(blob);
             const sheet = window.open(_url, "_blank");
             if (sheet !== null) {
@@ -448,5 +454,6 @@ function openSheet(uuid) {
             window.setTimeout(() => window.URL.revokeObjectURL(_url), 60000);
         }).catch((err) => {
         console.log(err);
+        showMessage("danger", "Das Datenblatt konnte nicht erstellt werden");
     });
 }
