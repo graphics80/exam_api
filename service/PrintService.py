@@ -106,7 +106,7 @@ class PrintService(Resource):
         :return:
         """
         margin_left = 15
-        margin_right = pdf.w - 15
+        margin_right = pdf.w - margin_left
         margin_top = 25
         pdf.add_page()
         for item in texts:
@@ -173,7 +173,7 @@ def wrap_text(pdf, text, max_width):
     :return: list of lines
     """
     lines = []
-    for paragraph in text.split('\n'):
+    for paragraph in text.rstrip('\n').split('\n'):
         line = ''
         for word in paragraph.split():
             longer = f'{line} {word}'.strip()
@@ -183,6 +183,8 @@ def wrap_text(pdf, text, max_width):
             else:
                 line = longer
         lines += split_word(pdf, line, max_width)
+    if lines == ['']:
+        return []
     return lines
 
 
