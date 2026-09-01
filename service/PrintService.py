@@ -2,7 +2,7 @@ import io
 import json
 import uuid
 
-from flask import make_response, current_app, send_file
+from flask import make_response, current_app, send_file, jsonify
 from flask_restful import Resource, reqparse
 from fpdf import FPDF
 
@@ -65,9 +65,9 @@ class PrintService(Resource):
         :return: response with path to pdf
         """
         args = self.parser.parse_args()
-        exam_uuids = [''.join(arg) for arg in args['exam_uuid'] or []]
+        exam_uuids = [uuid for uuid in (''.join(arg) for arg in args['exam_uuid'] or []) if uuid]
         if not exam_uuids:
-            return make_response('{"message": "no exam selected"}', 400)
+            return make_response(jsonify({"message": "no exam selected"}), 400)
 
         response = make_response(
             self.build_pdf(exam_uuids)
