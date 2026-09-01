@@ -217,11 +217,10 @@ function readStorage(item) {
  * @returns {string}
  */
 function getExamUUID(event) {
-    let targetElement = event.target;
-    if (targetElement.tagName === "I") {
-        targetElement = targetElement.parentNode.parentNode;
-    }
-    return targetElement.getAttribute("data-examuuid");
+    // currentTarget ist der Knopf, an dem der Listener haengt und der das
+    // Attribut traegt. event.target ist das angeklickte Element und kann das
+    // innere span oder i sein, je nachdem wo im Knopf der Klick landet
+    return event.currentTarget.getAttribute("data-examuuid");
 }
 
 /**
@@ -230,13 +229,9 @@ function getExamUUID(event) {
  * @returns {string}
  */
 function getStatus(event) {
-    let targetElement = event.target;
-    if (targetElement.tagName === "IMG") {
-        targetElement = targetElement.parentNode;
-    } else if (targetElement.tagName === "I") {
-        targetElement = targetElement.parentNode.parentNode;
-    }
-    return targetElement.getAttribute("data-status");
+    // wie bei getExamUUID(): der Knopf traegt das Attribut, nicht das
+    // angeklickte Element darin
+    return event.currentTarget.getAttribute("data-status");
 }
 
 /**
