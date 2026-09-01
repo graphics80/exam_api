@@ -1,38 +1,39 @@
 [
   {
     "event_uuid": "0bc11938-d5cc-4e9e-802b-223a6775d7e0",
-    "timestamp": "2022-09-13T15:15:00",
+    "timestamp": "2026-01-15 15:15:00",
     "rooms": [
       "H100",
       "H131"
     ],
     "supervisors": [
-      "hans.muster@bzz.local",
-      "hanna.heimspiel@bzz.local"
-    ]
+      "m.nagato@bzz.local",
+      "n.oberon@bzz.local"
+    ],
+    "status": "open"
   },
   {
     "event_uuid": "32a2427d-6c14-4709-99b3-3a3e1dcd2d09",
-    "timestamp": "2022-11-24T09:15:00",
+    "timestamp": "2025-11-24 09:15:00",
     "rooms": [
-      "H100",
-      "H131"
+      "H100"
     ],
     "supervisors": [
-      "carlo.castor@bzz.local",
-      "hanna.heimspiel@bzz.local"
-    ]
+      "m.nagato@bzz.local",
+      "i.kagero@bzz.local",
+      "k.leim@bzz.local"
+    ],
+    "status": "closed"
   },
   {
     "event_uuid": "20bc11938-d5cc-4e9e-802b-223a6775d7e0",
-    "timestamp": "offen",
+    "timestamp": "2026-03-19 15:15:00",
     "rooms": [
-      "H100",
       "H131"
     ],
     "supervisors": [
-      "Marcel.Suter@bzz.ch",
-      "Andre.Probst@bzz.ch"
-    ]
+      "n.oberon@bzz.local"
+    ],
+    "status": "unassigned"
   }
 ]
