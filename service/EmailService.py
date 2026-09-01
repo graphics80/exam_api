@@ -9,7 +9,7 @@ from data.ExamDAO import ExamDAO
 from data.EventDAO import EventDAO
 from data.PersonDAO import PersonDAO
 from util.authorization import token_required, teacher_required
-from util.replace import replace_text
+from util.replace import replace_text, plain_text
 
 #: exam status values where the teacher has not deposited the exam documents yet
 MISSING_DOCUMENTS = ['10', '20']
@@ -172,7 +172,7 @@ def create_email(exam, status, connection=None):
             'eventlist': event_dao.open_events(),
             'room': exam.room,
             'duration': str(exam.duration),
-            'tools': exam.tools
+            'tools': plain_text(exam.tools)
             }
     text = replace_text(data, text)
     current_app.logger.info(f'cc={cc}')
