@@ -340,9 +340,13 @@ function addDetailToggle(cell, detailRow) {
  * @param show  true=show the details
  */
 function setDetails(detailRow, button, show) {
+    const label = show ? "Weitere Angaben ausblenden" : "Weitere Angaben anzeigen";
     detailRow.classList.toggle("d-none", !show);
     button.setAttribute("aria-expanded", show ? "true" : "false");
-    button.title = show ? "Weitere Angaben ausblenden" : "Weitere Angaben anzeigen";
+    button.title = label;
+    // der Knopf zeigt nur ein Icon, ohne aria-label hat er keinen
+    // verlaesslichen Namen fuer Screenreader
+    button.setAttribute("aria-label", label);
     button.innerHTML = show
         ? "<i class='bi bi-chevron-up'></i>"
         : "<i class='bi bi-chevron-down'></i>";
@@ -387,6 +391,7 @@ function setDetailsAllButton(buttonId, show) {
     const button = document.getElementById(buttonId);
     if (button === null) return;
     button.setAttribute("data-shown", show ? "true" : "false");
+    button.setAttribute("aria-expanded", show ? "true" : "false");
     button.innerHTML = show
         ? "<i class='bi bi-chevron-up'></i> Weniger anzeigen"
         : "<i class='bi bi-chevron-down'></i> Mehr anzeigen";
