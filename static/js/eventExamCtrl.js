@@ -2,6 +2,9 @@
  * controller for eventExam.html
  */
 
+/* exam status values where the teacher has not deposited the documents yet */
+const MISSING_DOCUMENTS = ["10", "20"];
+
 /* initialize */
 readEventList(["dateSearch"]);
 
@@ -15,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("selectAll").addEventListener("change", selectAll);
         document.getElementById("sendEmail").addEventListener("click", sendInvitation);
         document.getElementById("eventStatus").addEventListener("change", changeStatus);
-        // document.getElementById("sendReminder").addEventListener("click", sendReminder);  TODO Version 1.2
+        document.getElementById("sendReminder").addEventListener("click", sendReminder);
         document.getElementById("createPDF").addEventListener("click", createAllPDF);
         document.getElementById("student").addEventListener("click", changeSort);
         document.getElementById("status").addEventListener("click", changeSort);
@@ -290,18 +293,19 @@ function sortExams(property) {
 }
 
 /**
- * sends an email for all selected exams
+ * sends an email for a list of exams
  * @param service  the api service to call
+ * @param examUUIDs  the exams to send to, defaults to the selected ones
  */
-function sendAllEmail(service) {
+function sendAllEmail(service, examUUIDs = null) {
     showMessage("info", "Sende Emails ...", 2);
     let data = new URLSearchParams();
-    const boxes = document.querySelectorAll("input:checked");
-    if (boxes.length > 0) {
-        for (const box of boxes) {
-            if (box.hasAttribute("data-examuuid")) {
-                data.append("exam_uuid", box.getAttribute("data-examuuid"));
-            }
+    examUUIDs ??= [...document.querySelectorAll("input:checked")]
+        .filter(box => box.hasAttribute("data-examuuid"))
+        .map(box => box.getAttribute("data-examuuid"));
+    if (examUUIDs.length > 0) {
+        for (const examUUID of examUUIDs) {
+            data.append("exam_uuid", examUUID);
         }
         fetch(API_URL + service, {
             method: "PUT",
@@ -309,15 +313,16 @@ function sendAllEmail(service) {
                 "Content-Type": "application/x-www-form-urlencoded",
                 "Authorization": "Bearer " + readStorage("access")
             }, body: data
-        }).then(function (response) {
-            if (!response.ok) {
+        }).then(response => response.text().then(message => {
+            if (response.ok) {
+                showMessage("info", message, 0, 5);
+            } else {
                 console.log(response);
-            } else return response;
-        }).then(response => response.text()
-        ).then(pdf_name => {
-            showMessage("clear", "")
-        }).catch(function (error) {
+                showMessage("danger", "Die Emails konnten nicht gesendet werden");
+            }
+        })).catch(function (error) {
             console.log(error);
+            showMessage("danger", "Die Emails konnten nicht gesendet werden");
         });
     } else {
         showMessage("warning", "keine Prüfung ausgewählt");
@@ -332,10 +337,25 @@ function sendInvitation() {
 }
 
 /**
- * sends a reminder email for all selected exams
+ * sends a reminder email to the teachers of every exam of the selected event
+ * whose documents are still missing, regardless of the selected checkboxes
  */
 function sendReminder() {
-    sendAllEmail("/email/reminder")
+    const pending = [...document.querySelectorAll("#examlist select[name='status']")]
+        .filter(field => MISSING_DOCUMENTS.includes(field.value));
+
+    if (pending.length === 0) {
+        showMessage("warning", "Für diese Nachprüfung fehlen keine Prüfungsunterlagen");
+        return;
+    }
+    const question = pending.length === 1
+        ? "Bei 1 Prüfung fehlen die Unterlagen.\n\nErinnerung an die Lehrperson senden?"
+        : `Bei ${pending.length} Prüfungen fehlen die Unterlagen.\n\nErinnerungen an die Lehrpersonen senden?`;
+    if (!window.confirm(question)) {
+        showMessage("clear", "");
+        return;
+    }
+    sendAllEmail("/email/reminder", pending.map(field => field.getAttribute("data-examuuid")));
 }
 
 /**

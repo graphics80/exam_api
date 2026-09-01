@@ -12,4 +12,4 @@ Freundliche Grüsse
 Bildungszentrum Zürichsee
 {{supervisors}}
 {{supervisors.emails}}
-https://exam.it.bzz.ch
+https://exam.bzz.ch

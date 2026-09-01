@@ -1,4 +1,5 @@
 import datetime
+from contextlib import nullcontext
 
 from flask import make_response, current_app
 from flask_mail import Mail, Message
@@ -9,6 +10,9 @@ from data.EventDAO import EventDAO
 from data.PersonDAO import PersonDAO
 from util.authorization import token_required, teacher_required
 from util.replace import replace_text
+
+#: exam status values where the teacher has not deposited the exam documents yet
+MISSING_DOCUMENTS = ['10', '20']
 
 
 class EmailService(Resource):
@@ -56,28 +60,48 @@ class EmailService(Resource):
         :param type: the type of email to send
         :return: response with path to pdf
         """
+        if type not in ['invitation', 'reminder']:
+            return make_response('{"message": "invalid type"}', 400)
+
         args = self.parser.parse_args()
         exam_dao = ExamDAO()
 
-        for exam_uuid in args['exam_uuid']:
-            uuid = ''
-            if isinstance(exam_uuid, list):
-                for item in exam_uuid:
-                    uuid += item
-            else:
-                uuid = exam_uuid
-            exam = exam_dao.read_exam(uuid)
-            if exam is not None and create_email(exam, 'invitation'):
-                exam.invited = True
-        exam_dao.save_exams()
-        return make_response('email sent', 200)
+        count = 0
+        with mail_connection() as connection:
+            for exam_uuid in args['exam_uuid'] or []:
+                exam = exam_dao.read_exam(''.join(exam_uuid))
+                if exam is None:
+                    continue
+                if type == 'reminder' and exam.status not in MISSING_DOCUMENTS:
+                    continue
+                if not create_email(exam, type, connection):
+                    continue
+                if type == 'invitation':
+                    exam.invited = True
+                count += 1
+        if type == 'invitation':
+            exam_dao.save_exams()
+        return make_response(f'{count} Email(s) gesendet', 200)
 
 
-def create_email(exam, status):
+def mail_connection():
+    """
+    opens a single smtp connection to be reused for a batch of emails
+    the handshake costs far more than a message, so opening one per email
+    makes a batch unusably slow
+    :return: a context manager, empty if sending is switched off
+    """
+    if current_app.config['MAIL_SERVER'] == 'localhost':
+        return nullcontext()
+    return Mail(current_app).connect()
+
+
+def create_email(exam, status, connection=None):
     """
     creates an email for the selected exam and type
     :param exam: the unique uuid for an exam
     :param status: the type of email (missed, ...)
+    :param connection: an open smtp connection to reuse, or None for a single email
     :return: successful
     """
     event_dao = EventDAO()
@@ -96,7 +120,14 @@ def create_email(exam, status):
     filename = current_app.config['TEMPLATEPATH']
 
     cc = [exam.teacher.email]
-    if status == 'invitation':
+    recipient = exam.student.email
+    if status == 'reminder':
+        filename += 'reminder.txt'
+        sender = chief_supervisor.email
+        recipient = exam.teacher.email
+        cc = []
+        subject = 'Fehlende Prüfungsunterlagen'
+    elif status == 'invitation':
         filename += 'invitation.txt'
         sender = chief_supervisor.email
         for supervisor in supervisors:
@@ -145,11 +176,11 @@ def create_email(exam, status):
             }
     text = replace_text(data, text)
     current_app.logger.info(f'cc={cc}')
-    send_email(sender, exam.student.email, cc, subject, text)
+    send_email(sender, recipient, cc, subject, text, connection)
     return True
 
 
-def send_email(sender, recipient, carboncopy, subject, content):
+def send_email(sender, recipient, carboncopy, subject, content, connection=None):
     """
     sends an email
     :param sender: email address of the sender
@@ -157,11 +188,11 @@ def send_email(sender, recipient, carboncopy, subject, content):
     :param carboncopy: the cc recipients
     :param subject: subject of the email
     :param content: email text
+    :param connection: an open smtp connection to reuse, or None to open one
     :return: None
     """
     if current_app.config['MAIL_SERVER'] == 'localhost':
         return
-    mail = Mail(current_app)
     msg = Message(
         subject=subject,
         sender=current_app.config['MAIL_USERNAME'],
@@ -170,4 +201,7 @@ def send_email(sender, recipient, carboncopy, subject, content):
         cc=carboncopy
     )
     msg.body = content
-    mail.send(msg)
+    if connection is None:
+        Mail(current_app).send(msg)
+    else:
+        connection.send(msg)
