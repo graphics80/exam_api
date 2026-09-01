@@ -43,7 +43,8 @@ function searchExamlist() {
     if (eventStatus === "closed") {
         document.getElementById("sendEmail").disabled = locked;
     }
-    document.getElementById("createPDF").disabled = locked;
+    // bis die neue Liste steht, ist nichts ausgewaehlt, was gedruckt werden koennte
+    document.getElementById("createPDF").disabled = true;
     show_eventStatus(eventStatus);
     readExamlist(filter).then(data => {
         showExamlist(data, locked);
@@ -407,8 +408,8 @@ function createAllPDF() {
 
 /**
  * the exams whose checkbox is ticked
- * the status switch of the event is a checkbox too, so only the boxes
- * that carry an exam count as a selection
+ * the status switch of the event is a checkbox too, so a box only counts
+ * as a selection when it carries a data-examuuid
  * @returns {string[]} the uuids of the selected exams
  */
 function selectedExams() {
