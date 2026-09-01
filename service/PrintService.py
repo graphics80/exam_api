@@ -9,7 +9,7 @@ from fpdf import FPDF
 from data.ExamDAO import ExamDAO
 from data.EventDAO import EventDAO
 from util.authorization import token_required, teacher_required
-from util.replace import replace_text
+from util.replace import replace_text, plain_text
 
 
 class PrintService(Resource):
@@ -112,6 +112,7 @@ class PrintService(Resource):
         :return:
         """
         margin_left = 15
+        margin_right = pdf.w - 15
         margin_top = 25
         pdf.add_page()
         for item in texts:
@@ -123,21 +124,7 @@ class PrintService(Resource):
                 if item.get('bold') is not None:
                     style = 'B'
                 pdf.set_font(style=style, family='helvetica')
-                for line in content.split('\n'):
-                    words = line.split()
-                    length = 0
-                    text = ''
-                    for word in words:
-                        if length + len(word) >= 40:
-                            pdf.text(xcoord, ycoord, text)
-                            ycoord += 6
-                            line = line[length + 1:]
-                            length = 0
-                            text = ''
-                        else:
-                            length += len(word) + 1
-                            text += word + ' '
-
+                for line in wrap_text(pdf, content, margin_right - xcoord):
                     pdf.text(xcoord, ycoord, line)
                     ycoord += 6
             elif item['type'] == 'line':
@@ -175,9 +162,50 @@ class PrintService(Resource):
                 'event.date': f'{event.timestamp[8:10]}.{event.timestamp[5:7]}.{event.timestamp[0:4]}',
                 'event.time': f'{event.timestamp[14:19]}',
                 'room': exam.room,
-                'tools': exam.tools,
-                'remarks': exam.remarks,
+                'tools': plain_text(exam.tools),
+                'remarks': plain_text(exam.remarks),
                 'environment_label': 'Prüfungsumgebung' if exam.status == '35' else '',
                 'environment': exam.environment if exam.status == '35' and exam.environment else ''
                 }
         return data
+
+
+def wrap_text(pdf, text, max_width):
+    """
+    breaks a text into lines that fit into the available width
+    :param pdf: the pdf object, used to measure the text
+    :param text: the text, may contain line breaks
+    :param max_width: the available width in mm
+    :return: list of lines
+    """
+    lines = []
+    for paragraph in text.split('\n'):
+        line = ''
+        for word in paragraph.split():
+            longer = f'{line} {word}'.strip()
+            if line != '' and pdf.get_string_width(longer) > max_width:
+                lines += split_word(pdf, line, max_width)
+                line = word
+            else:
+                line = longer
+        lines += split_word(pdf, line, max_width)
+    return lines
+
+
+def split_word(pdf, line, max_width):
+    """
+    splits a line that is still too wide, because a single word does not fit
+    :param pdf: the pdf object, used to measure the text
+    :param line: a line without line breaks
+    :param max_width: the available width in mm
+    :return: list of lines
+    """
+    parts = []
+    while len(line) > 1 and pdf.get_string_width(line) > max_width:
+        cut = 1
+        while cut < len(line) and pdf.get_string_width(line[:cut + 1]) <= max_width:
+            cut += 1
+        parts.append(line[:cut])
+        line = line[cut:]
+    parts.append(line)
+    return parts
