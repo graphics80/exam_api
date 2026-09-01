@@ -80,7 +80,8 @@ class Exam(dict):
             '35': 'elektronisch',
             '40': 'erhalten',
             '50': 'absolviert',
-            '80': 'pnab'
+            '80': 'pnab',
+            '90': 'gelöscht'
         }
         return status_map.get(self.status, 'unbekannt')
 
