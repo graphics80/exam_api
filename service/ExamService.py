@@ -95,6 +95,7 @@ class ExamService(Resource):
         """
         exam_dao = ExamDAO()
         invited = False
+        oldExam = None
         if new is False:
             oldExam = exam_dao.read_exam(args.exam_uuid)
             if oldExam is None:
@@ -114,9 +115,13 @@ class ExamService(Resource):
         if args.exam_uuid is None or args.exam_uuid == '':
             args.exam_uuid = str(uuid.uuid4())
         # die Pruefungsumgebung gilt nur fuer elektronische Pruefungen
-        # nur ein mitgesendeter Status entscheidet, sonst wuerde changeExam(),
-        # das beim Raumwechsel nur dieses eine Feld sendet, den Wert loeschen
-        if args.status is not None and args.status != '35':
+        # massgebend ist der Status nach dem Update: der mitgesendete, sonst der
+        # gespeicherte. So haelt die Regel auch bei einem Teil-Update wie
+        # changeExam(), das beim Raumwechsel nur dieses eine Feld sendet
+        status = args.status
+        if status is None and oldExam is not None:
+            status = oldExam.status
+        if status != '35':
             args.environment = ''
         exam = Exam(
             exam_uuid=args.exam_uuid,
