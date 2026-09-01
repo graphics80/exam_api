@@ -195,6 +195,14 @@ gelöscht (Eintrag gelöscht)"></i>
             <option value="80" disabled hidden>pnab (Prüfung nicht absolviert)</option>
             <option value="90">gelöscht (Eintrag gelöscht)</option>
           </select>
+          <div id="environmentGroup" class="d-none">
+            <label for="environment" class="form-label">
+              Prüfungsumgebung
+              <i class="bi bi-question-circle-fill text-info"
+                 title="Umgebung der elektronischen Prüfung, z.B. Moodle oder IsTest"></i>
+            </label>
+            <input type="text" class="form-control" id="environment" maxlength="30"/>
+          </div>
           <label for="supervisor" class="form-label">Aufsicht(en)</label>
           <input type="text" id="supervisor" class="form-control" readonly/>
           <label for="room" class="form-label">

@@ -16,6 +16,8 @@
   {"type": "text", "xcoord":  15, "ycoord":  11, "content": "{{teacher.firstname}} {{teacher.lastname}}"},
   {"type": "text", "xcoord":  0, "ycoord":  12, "content": "Status"},
   {"type": "text", "xcoord":  15, "ycoord":  12, "content": "{{exam_status}}"},
+  {"type": "text", "xcoord":  0, "ycoord":  13, "content": "{{environment_label}}"},
+  {"type": "text", "xcoord":  15, "ycoord":  13, "content": "{{environment}}"},
   {"type": "text", "xcoord":  0, "ycoord":  14, "content": "Hilfsmittel"},
   {"type": "text", "xcoord":  15, "ycoord":  14, "content": "{{tools}}"},
   {"type": "text", "xcoord":  0, "ycoord":  18, "content": "Bemerkungen"},

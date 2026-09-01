@@ -28,6 +28,7 @@ class Exam(dict):
     tools: str
     status: str
     invited: bool = False
+    environment: str = ''
 
     def to_json(self, response=True) -> str:
         '''
@@ -48,7 +49,8 @@ class Exam(dict):
                 'tools': self.tools,
                 'event_uuid': self.event_uuid,
                 'status': self.status,
-                'invited': self.invited
+                'invited': self.invited,
+                'environment': self.environment
             }
 
             if response:

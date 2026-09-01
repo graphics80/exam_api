@@ -176,6 +176,8 @@ class PrintService(Resource):
                 'event.time': f'{event.timestamp[14:19]}',
                 'room': exam.room,
                 'tools': exam.tools,
-                'remarks': exam.remarks
+                'remarks': exam.remarks,
+                'environment_label': 'Prüfungsumgebung' if exam.status == '35' else '',
+                'environment': exam.environment if exam.status == '35' and exam.environment else ''
                 }
         return data

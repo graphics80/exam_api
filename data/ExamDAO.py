@@ -123,6 +123,8 @@ class ExamDAO:
             old.tools = exam.tools
         if exam.status is not None:
             old.status = exam.status
+        if exam.environment is not None:
+            old.environment = exam.environment
 
         self.save_exams()
 
@@ -167,7 +169,8 @@ class ExamDAO:
                 remarks=item['remarks'],
                 tools=item['tools'],
                 status=item['status'],
-                invited=item['invited']
+                invited=item['invited'],
+                environment=item.get('environment') or ''
             )
             self._examdict[key] = exam
 
