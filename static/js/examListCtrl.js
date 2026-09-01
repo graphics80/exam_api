@@ -365,8 +365,9 @@ function submitExam(event) {
             data.set(field, document.getElementById(field).value);
         }
 
-        // Datenblatt nur fuer eine neue Pruefung ab dem Status "offen",
-        // solange das Arztzeugnis pendent ist oder der Eintrag geloescht wurde nicht
+        // Das Datenblatt oeffnet sich nur bei einer neu erfassten Pruefung und
+        // nur bei den Status 20 bis 40. Bei 10 ist das Arztzeugnis noch pendent
+        // und bei 90 ist der Eintrag geloescht, dort waere es sofort Altpapier
         const showSheet = data.get("exam_uuid").trim() === "" &&
             ["20", "30", "35", "40"].includes(data.get("status"));
         saveExam(
@@ -457,7 +458,9 @@ function openSheet(uuid) {
             } else {
                 showMessage("warning", "Das Datenblatt wurde vom Popup-Blocker unterdrückt");
             }
-            // erst freigeben, wenn der neue Tab den Blob geladen hat
+            // Es gibt kein Ereignis dafuer, dass der neue Tab den Blob geladen
+            // hat. Eine Minute ist grosszuegig genug dafuer und verhindert,
+            // dass die Object-URL fuer den Rest der Sitzung liegen bleibt
             window.setTimeout(() => window.URL.revokeObjectURL(_url), 60000);
         }).catch((err) => {
         console.log(err);
