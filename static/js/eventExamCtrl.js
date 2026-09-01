@@ -228,6 +228,8 @@ function showExamlist(data, locked) {
         } else {
             showMessage("warning", "Keine Prüfungen zu diesem Datum gefunden");
         }
+        // auch nach einer leeren Trefferliste, sonst bleiben die Knoepfe aus der
+        // vorherigen Auswahl aktiv, obwohl keine Pruefung mehr dasteht
         showSelectionButtons();
     })();
 }
